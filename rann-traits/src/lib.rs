@@ -1,6 +1,7 @@
 use compose::Chain;
 
 pub mod compose;
+pub mod deriv;
 
 /// The default scalar type
 pub type Scalar = f32;

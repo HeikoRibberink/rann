@@ -165,6 +165,7 @@ version = "0.1.0"
 dependencies = [
  "fastrand",
  "nalgebra",
+ "rann-traits",
  "rayon",
  "thiserror",
 ]
