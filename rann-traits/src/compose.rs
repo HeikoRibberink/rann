@@ -17,17 +17,28 @@ where
 
     type Inter = (T::Inter, U::Inter);
 
-    fn intermediate(&self, inputs: Self::In) -> Self::Inter {
-        let a = self.first.intermediate(inputs);
+    fn intermediate(&self, input: &Self::In) -> Self::Inter {
+        let a = self.first.intermediate(input);
         let b = self.second.intermediate(a.output());
         (a, b)
     }
 
-    fn train_deriv(&mut self, intermediate: Self::Inter, gradients: Self::Out, learning_rate: Scalar) -> Self::In {
-        let second = self.second.train_deriv(intermediate.1, gradients, learning_rate);
-        let first = self.first.train_deriv(intermediate.0, second, learning_rate);
+    fn train_deriv(
+        &mut self,
+        inputs: &Self::In,
+        intermediate: &Self::Inter,
+        gradients: &Self::Out,
+        learning_rate: Scalar,
+    ) -> Self::In {
+        let second = self.second.train_deriv(
+            intermediate.0.output(),
+            &intermediate.1,
+            gradients,
+            learning_rate,
+        );
+        let first = self
+            .first
+            .train_deriv(inputs, &intermediate.0, &second, learning_rate);
         first
     }
-
 }
-

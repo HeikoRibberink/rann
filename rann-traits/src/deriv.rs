@@ -3,7 +3,7 @@ use std::ops::Index;
 use crate::Scalar;
 
 /// A one-dimensional pure function with its derivative.
-pub trait Derivative {
+pub trait Deriv {
     /// The input type.
     type In;
     /// The output type.
@@ -15,7 +15,7 @@ pub trait Derivative {
 }
 
 // Any tuple of pure functions can also be used as a Derivative.
-impl<F, D> Derivative for (F, D)
+impl<F, D> Deriv for (F, D)
 where
     F: Fn(Scalar) -> Scalar,
     D: Fn(Scalar) -> Scalar,
@@ -34,7 +34,7 @@ where
 }
 
 /// A multi-dimensional pure function with its derivatives.
-pub trait MultiDerivative {
+pub trait NDeriv {
     /// The input type.
     type In: Index<usize>;
     /// The output type.
@@ -47,7 +47,7 @@ pub trait MultiDerivative {
 
 
 // Any one-dimensional derivative is also a multi-dimensional derivative.
-impl<T> MultiDerivative for T where T: Derivative {
+impl<T> NDeriv for T where T: Deriv {
     type In = [T::In; 1];
     type Out = T::Out;
 
