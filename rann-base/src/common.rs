@@ -115,3 +115,11 @@ impl NDeriv for Sum {
 pub fn random_unit(_: GenReq) -> f32 {
     fastrand::f32() * 4.0 - 2.0
 }
+
+pub fn random_weights(_: usize, _: usize) -> f32 {
+    fastrand::f32() * 4.0 - 2.0
+}
+
+pub fn random_biases(_: usize) -> f32 {
+    fastrand::f32() * 4.0 - 2.0
+}

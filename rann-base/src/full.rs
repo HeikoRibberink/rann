@@ -2,7 +2,7 @@ use arrayvec::ArrayVec;
 use nalgebra::{Const, MatrixView, SMatrix};
 use rann_traits::{deriv::Deriv, Intermediate, Network, Scalar};
 
-/// A fully connected network layer.
+/// A fully connected network layer, with a given input and output size and an activation function.
 pub struct Full<const NUM_IN: usize, const NUM_OUT: usize, A> {
     weights: SMatrix<Scalar, NUM_OUT, NUM_IN>,
     biases: [Scalar; NUM_OUT],
@@ -33,7 +33,10 @@ where
         for sum in out.iter_mut() {
             *sum = self.act.call(&sum);
         }
-        (sums, out.data.0[0])
+        FullInter {
+            weighted_sums: sums,
+            outputs: out.data.0[0],
+        }
     }
 
     fn train_deriv(
@@ -46,8 +49,9 @@ where
         // Calculate the gradients over the activation
         let grad: ArrayVec<Scalar, NUM_OUT> = gradients
             .iter()
-            .zip(intermediate.0.iter())
-            .map(|(gr, sum)| gr * self.act.deriv(sum)).collect();
+            .zip(intermediate.weighted_sums.iter())
+            .map(|(gr, sum)| gr * self.act.deriv(sum))
+            .collect();
         // Update the biases
         for (bias, grad) in self.biases.iter_mut().zip(grad.iter()) {
             *bias += grad * learning_rate;
@@ -59,17 +63,62 @@ where
             }
         }
         // Amount of columns = NUM_IN, size_grad = NUM_OUT
-        let out: ArrayVec<f32, NUM_IN> = self.weights.column_iter().map(|row| {
-            let mut sum = 0.0;
-            for (w, g) in row.iter().zip(grad.iter()) {
-                sum += w * g;
-            }
-            sum
-        }).collect();
-        out.into_inner().expect("Capacity of ArrayVec should equal NUM_OUT.")
+        let out: ArrayVec<Scalar, NUM_IN> = self
+            .weights
+            .column_iter()
+            .map(|row| {
+                let mut sum = 0.0;
+                for (w, g) in row.iter().zip(grad.iter()) {
+                    sum += w * g;
+                }
+                sum
+            })
+            .collect();
+        out.into_inner()
+            .expect("Capacity of ArrayVec should equal NUM_OUT.")
+    }
+}
+
+impl<const NUM_IN: usize, const NUM_OUT: usize, A> Full<NUM_IN, NUM_OUT, A>
+where
+    A: Deriv<In = Scalar, Out = Scalar>,
+{
+    // Creates a fully connected layer with the given activation and with weights and biases
+    // generated using the given generator functions.
+    pub fn new(
+        // The activation function for this layer.
+        activation: A,
+        // Function for generating the weights of the layer.
+        weight_gen: impl Fn(usize, usize) -> Scalar,
+        // Function for generating the biases of the layer.
+        bias_gen: impl Fn(usize) -> Scalar,
+    ) -> Self {
+        let weights = SMatrix::from_fn(weight_gen);
+        let biases: ArrayVec<_, NUM_OUT> = (0..NUM_OUT).into_iter().map(bias_gen).collect();
+        Self {
+            act: activation,
+            weights,
+            biases: biases
+                .into_inner()
+                .expect("Capacity of ArrayVec should equal NUM_OUT."),
+        }
     }
 }
 
 /// The intermediate calculations for an evaluation of [`Full`].
-/// Of the form (weighted sums, outputs).
-pub type FullInter<const NUM_OUT: usize> = ([Scalar; NUM_OUT], [Scalar; NUM_OUT]);
+pub struct FullInter<const NUM_OUT: usize> {
+    weighted_sums: [Scalar; NUM_OUT],
+    outputs: [Scalar; NUM_OUT],
+}
+
+impl<const NUM_OUT: usize> Intermediate for FullInter<NUM_OUT> {
+    type Out = [Scalar; NUM_OUT];
+
+    fn output(&self) -> &Self::Out {
+        &self.outputs
+    }
+
+    fn into_output(self) -> Self::Out {
+        self.outputs
+    }
+}
