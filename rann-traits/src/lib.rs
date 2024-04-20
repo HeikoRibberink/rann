@@ -5,7 +5,26 @@ Rann-traits contains all the different traits for the RANN ecosystem,
 enabling you to compose neural networks and build generic, reusable components
 for your machine learning applications.
 
-At the center of RANN is the [`Network`] trait,
+# The [`Network`] trait
+
+At the center of RANN is the [`Network`] trait. A type implementing `Network` is a (part of)
+a machine learning model that can be evaluated and trained using backpropagation.
+
+This trait is modeled like a function: an implementation of [`Network`] declares input and
+output types, and can be evaluated. Furthermore, to enable efficient computation, a network 
+has an [`Intermediate`] associated type that is returned after a computation and reused to 
+train the network.
+
+The [`Network`] trait has two required methods:
+- [`Network::intermediate()`]: evaluates the network and returns the results and intermediate 
+calculations for training,
+- [`Network::train_deriv()`]: trains the network using the previously mentioned calculations and 
+returns gradients for preceding parts of the network to train on.
+
+# Composing networks
+
+This trait automatically implements methods for composing (connecting) multiple networks or
+layers into one network. See [`self::compose`] for more information.
 
 */
 
@@ -18,7 +37,9 @@ use num_traits::One;
 /// The default scalar type.
 pub type Scalar = f32;
 
-/// Trait implemented by neural networks.
+/// Trait implemented by networks that can be evaluated and trained by backpropagation. 
+/// See [module level documentation](crate)
+/// for more info.
 pub trait Network {
     /// Type for the network's inputs and derivatives.
     type In;
@@ -47,16 +68,17 @@ pub trait Network {
     /// Evaluate the network and return the outputs.
     ///
     /// # Implementation note
-    /// The default implementation evaluates the network using [`intermediate`](Self::intermediate) and discards all
+    /// The default implementation evaluates the network using [`Self::intermediate()`] and discards all
     /// intermediate values but the output of the network. With some networks, it might be more
     /// efficient to override this behaviour.
     fn eval(&self, inputs: &Self::In) -> Self::Out {
         self.intermediate(inputs).into_output()
     }
 
-    /// Trains the network using a previous evaluation and the associated inputs. 
-    /// 
-    /// 
+    /// Trains the network using a previous evaluation and the associated inputs.
+    ///
+    /// # Implementation note
+    /// This method calls `train_deriv` with an array of gradients filled with ones.
     fn train<T, const NUM_IN: usize>(
         &mut self,
         inputs: &Self::In,

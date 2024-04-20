@@ -10,4 +10,8 @@ A set of experimental libraries for neural networks in Rust, focusing on allocat
 - [X] Fully connected layer: [`Full`],
 - [ ] Convolution layer,
 - [ ] [LSTM](https://en.wikipedia.org/wiki/Long_short-term_memory) layer,
-- [ ] And others.
+and utilities such as:
+- activation functions,
+- error functions,
+- network generators,
+and others.

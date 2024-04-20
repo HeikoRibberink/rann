@@ -1,5 +1,5 @@
 use fastrand::Rng;
-use rann_base::{activ::{LeakyRelu, Logistic}, error::SumError, Full};
+use rann_base::{activ::LeakyRelu, error::SumError, Full};
 use rann_traits::{Intermediate, Network};
 
 // Trains a neural network that approximates the XOR function, and tests if it doesn't diverge.

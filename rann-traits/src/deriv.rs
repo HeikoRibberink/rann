@@ -1,5 +1,13 @@
 /*!
 Traits describing functions and their derivatives.
+
+# [`NDeriv`]ative
+A trait for multi-dimensional [pure functions](https://en.wikipedia.org/wiki/Pure_function)
+and their derivatives. Since RANN uses backpropagation, which uses derivatives, this
+trait is essential for the RANN ecosystem.
+
+# [`Deriv`]ative
+A simpler, one-dimensional version of [`NDeriv`].
 */
 use std::ops::Index;
 

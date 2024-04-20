@@ -24,11 +24,11 @@ impl Deriv for LeakyRelu {
     }
 }
 
-/// Hypertangent activation function.
+/// Hyperbolic tangent function
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct HTan;
+pub struct Tanh;
 
-impl Deriv for HTan {
+impl Deriv for Tanh {
     type In = f32;
 
     type Out = f32;
@@ -38,7 +38,7 @@ impl Deriv for HTan {
     }
 
     fn deriv(&self, x: &Self::In) -> Self::Out {
-        (4.0 * x.cosh().powi(2)) / ((2.0 * x).cosh() + 1.0).powi(2)
+        x.tanh()
     }
 }
 
