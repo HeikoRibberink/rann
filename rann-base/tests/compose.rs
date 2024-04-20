@@ -1,9 +1,5 @@
 use float_cmp::{ApproxEq, F32Margin};
-use rann_base::{
-    common::{random_biases, random_weights, Logistic, Random},
-    error::SquareError,
-    full::Full,
-};
+use rann_base::{activ::Logistic, error::SquareError, full::Full, gen::Random};
 use rann_traits::{compose::zip, Intermediate, Network};
 
 #[test]
@@ -12,9 +8,9 @@ fn simple_compose() {
     // The learning rate.
     const RATE: f32 = 0.5;
     // Prints statistics every `REP` iterations.
-    const STAT: usize = 1000;
+    const STAT: usize = 100;
     // The amount of iterations to train the network for.
-    const ITER: usize = 100000;
+    const ITER: usize = 10000;
     // The expected values.
     const EXPECTED: [f32; 6] = [0.99, 0.1, 0.5, 0.3, 0.789, 0.6];
     // Network inputs.
@@ -23,6 +19,8 @@ fn simple_compose() {
     let net = Full::<1, 5, _>::new(Logistic, Random)
         // You can even remove some intermediate const parameters.
         .chain(Full::new(Logistic, Random))
+        //          ^^^
+        //      params removed here
         .chain(Full::<10, 5, _>::new(Logistic, Random))
         .chain(Full::<5, 1, _>::new(Logistic, Random));
 

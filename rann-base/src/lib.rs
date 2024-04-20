@@ -1,9 +1,7 @@
 
-pub mod common;
+pub mod activ;
 pub mod error;
 pub mod full;
-pub mod net;
+pub mod gen;
 
-pub use common::{random_biases, random_weights, Logistic};
-pub use error::SquareError;
 pub use full::{Full, FullInter};

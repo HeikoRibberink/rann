@@ -6,15 +6,16 @@ Chains two networks together, after eachother.
 # Examples
 ```rust
 use rann_traits::Network;
-use rann_base::{Full, common::Logistic};
+use rann_base::{Full, activ::Logistic};
 
 // Create generators for the weights and biases.
 let all_zero_weights = |_, _| 0.0;
 let all_zero_biases = |_| 0.0;
+let gen = (all_zero_weights, all_zero_biases);
 
 // Initialize different layers of the network.
-let a = Full::<5, 5, _>::new(Logistic, all_zero_weights, all_zero_biases);
-let b = Full::<5, 5, _>::new(Logistic, all_zero_weights, all_zero_biases);
+let a = Full::<5, 5, _>::new(Logistic, gen);
+let b = Full::<5, 5, _>::new(Logistic, gen);
 
 // And chain those layers together.
 let mut net = a.chain(b);

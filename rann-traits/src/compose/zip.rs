@@ -96,8 +96,6 @@ where
 #[derive(Clone, Copy, Debug)]
 pub struct Stacker<const A: usize, const B: usize, const SUM: usize>;
 
-pub type Test = (stacked, unstacked);
-
 impl<const A: usize, const B: usize, const SUM: usize>
     Into<(
         fn(&[Scalar; A], &[Scalar; B]) -> [Scalar; SUM],

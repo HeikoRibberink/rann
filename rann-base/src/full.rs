@@ -2,6 +2,8 @@ use arrayvec::ArrayVec;
 use nalgebra::{Const, MatrixView, SMatrix};
 use rann_traits::{deriv::Deriv, Intermediate, Network, Scalar};
 
+use crate::activ::LeakyRelu;
+
 /// A fully connected network layer, with a given input and output size and an activation function.
 pub struct Full<const NUM_IN: usize, const NUM_OUT: usize, A> {
     weights: SMatrix<Scalar, NUM_OUT, NUM_IN>,
@@ -94,8 +96,8 @@ where
     ) -> Self
     where
         T: Into<(F, G)>,
-        F: Fn(usize, usize) -> Scalar,
-        G: Fn(usize) -> Scalar,
+        F: FnMut(usize, usize) -> Scalar,
+        G: FnMut(usize) -> Scalar,
     {
         let (weight_gen, bias_gen) = gen.into();
         let weights = SMatrix::from_fn(weight_gen);

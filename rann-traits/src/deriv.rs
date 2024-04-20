@@ -1,3 +1,6 @@
+/*!
+Traits describing functions and their derivatives.
+*/
 use std::ops::Index;
 
 use crate::Scalar;
@@ -59,9 +62,3 @@ impl<T> NDeriv for T where T: Deriv {
         self.deriv(&x[0])
     }
 }
-//
-// /// Indicates that this function can be used as an error function.
-// trait Error: MultiDerivative<In = [Scalar], Out = Scalar> {}
-//
-// /// Indicates that this function can be used as an activation function.
-// trait Activation: Derivative<In = Scalar, Out = Scalar> {}

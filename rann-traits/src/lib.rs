@@ -15,7 +15,7 @@ pub mod deriv;
 use compose::{Chain, Zip};
 use num_traits::One;
 
-/// The default scalar type
+/// The default scalar type.
 pub type Scalar = f32;
 
 /// Trait implemented by neural networks.
@@ -47,7 +47,7 @@ pub trait Network {
     /// Evaluate the network and return the outputs.
     ///
     /// # Implementation note
-    /// The default implementation evaluates the network using [`intermediate`] and discards all
+    /// The default implementation evaluates the network using [`intermediate`](Self::intermediate) and discards all
     /// intermediate values but the output of the network. With some networks, it might be more
     /// efficient to override this behaviour.
     fn eval(&self, inputs: &Self::In) -> Self::Out {
