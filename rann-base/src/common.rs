@@ -1,4 +1,7 @@
-use rann_traits::deriv::{Deriv, NDeriv};
+use rann_traits::{
+    deriv::{Deriv, NDeriv},
+    Scalar,
+};
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use crate::net::GenReq;
@@ -41,7 +44,7 @@ impl Deriv for HTan {
     }
 
     fn deriv(&self, x: &Self::In) -> Self::Out {
-        (4.0 * x.cosh().powi(2)) / (( 2.0 * x ).cosh() + 1.0).powi(2)
+        (4.0 * x.cosh().powi(2)) / ((2.0 * x).cosh() + 1.0).powi(2)
     }
 }
 
@@ -63,7 +66,6 @@ impl Deriv for Logistic {
         a * (1.0 - a)
     }
 }
-
 
 /// Sums the square of the difference between the expected values and the input values.
 #[derive(Clone, Debug)]
@@ -114,6 +116,15 @@ impl NDeriv for Sum {
 /// Generator that generates a random f32 in the range [-2.0, 2.0].
 pub fn random_unit(_: GenReq) -> f32 {
     fastrand::f32() * 4.0 - 2.0
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Random;
+
+impl Into<(fn(usize, usize) -> Scalar, fn(usize) -> Scalar)> for Random {
+    fn into(self) -> (fn(usize, usize) -> Scalar, fn(usize) -> Scalar) {
+        (random_weights, random_biases)
+    }
 }
 
 pub fn random_weights(_: usize, _: usize) -> f32 {

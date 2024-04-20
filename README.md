@@ -1,5 +1,5 @@
 # RANN
-Rust Artificial Neural Network library
+Rust Artificial Neural Network crate
 
 ---
 A set of experimental libraries for neural networks in Rust, focusing on allocation-free and reusable components.

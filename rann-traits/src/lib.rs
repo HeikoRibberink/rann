@@ -1,9 +1,19 @@
-use std::ops::{Index, IndexMut};
+/*!
+# Rann-traits
 
-use compose::{Chain, Zip};
+Rann-traits contains all the different traits for the RANN ecosystem,
+enabling you to compose neural networks and build generic, reusable components
+for your machine learning applications.
+
+At the center of RANN is the [`Network`] trait,
+
+*/
 
 pub mod compose;
 pub mod deriv;
+
+use compose::{Chain, Zip};
+use num_traits::One;
 
 /// The default scalar type
 pub type Scalar = f32;
@@ -20,7 +30,8 @@ pub trait Network {
     /// Evaluate the network and return the intermediate calculations.
     fn intermediate(&self, inputs: &Self::In) -> Self::Inter;
 
-    /// Train the network using a previous evaluation and gradients, and return input gradients.
+    /// Train the network using a previous evaluation, the associated inputs, and gradients from
+    /// a following network, and return the gradients over the inputs.
     fn train_deriv(
         &mut self,
         // The previous inputs to the network.
@@ -35,11 +46,32 @@ pub trait Network {
 
     /// Evaluate the network and return the outputs.
     ///
+    /// # Implementation note
     /// The default implementation evaluates the network using [`intermediate`] and discards all
     /// intermediate values but the output of the network. With some networks, it might be more
     /// efficient to override this behaviour.
-    fn eval(&self, input: &Self::In) -> Self::Out {
-        self.intermediate(input).into_output()
+    fn eval(&self, inputs: &Self::In) -> Self::Out {
+        self.intermediate(inputs).into_output()
+    }
+
+    /// Trains the network using a previous evaluation and the associated inputs. 
+    /// 
+    /// 
+    fn train<T, const NUM_IN: usize>(
+        &mut self,
+        inputs: &Self::In,
+        intermediate: &Self::Inter,
+        learning_rate: Scalar,
+    ) where
+        for<'a> &'a [T; NUM_IN]: Into<&'a Self::Out>,
+        T: One + Copy,
+    {
+        self.train_deriv(
+            inputs,
+            intermediate,
+            (&[T::one(); NUM_IN]).into(),
+            learning_rate,
+        );
     }
 
     /// Chains `self` and `next` together, after eachother.
@@ -59,13 +91,14 @@ pub trait Network {
     /// into one using `zipper`.
     ///`unzipper` must do exactly the reverse of `Z`: take the combined outputs of the networks and pull
     ///them apart.
-    fn zip<U, C, Z, UnZ>(self, other: U, zipper: Z, unzipper: UnZ) -> Zip<Self, U, Z, UnZ>
+    fn zip<U, C, Z, UnZ>(self, other: U, zipper: impl Into<(Z, UnZ)>) -> Zip<Self, U, Z, UnZ>
     where
         Self: Sized,
         U: Network,
         Z: Fn(&Self::Out, &U::Out) -> C,
-        UnZ: Fn(&C) -> (&Self::Out, &U::Out),
+        UnZ: for<'a> Fn(&'a C) -> (&'a Self::Out, &'a U::Out),
     {
+        let (zipper, unzipper) = zipper.into();
         Zip {
             top: self,
             bot: other,
@@ -112,8 +145,3 @@ impl Intermediate for Scalar {
         self
     }
 }
-
-/// Indicates that a type is allowed as data passed between layers in a network.
-pub trait NetData: IndexMut<usize> + Index<usize, Output = Scalar> {}
-
-impl<T> NetData for T where T: IndexMut<usize> + Index<usize, Output = Scalar> {}

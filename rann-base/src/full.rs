@@ -54,12 +54,12 @@ where
             .collect();
         // Update the biases
         for (bias, grad) in self.biases.iter_mut().zip(grad.iter()) {
-            *bias += grad * learning_rate;
+            *bias -= grad * learning_rate;
         }
         // Calculate the gradients over each weight and update it correspondingly.
         for (mut weights, input) in self.weights.column_iter_mut().zip(input.iter()) {
             for (w, grad) in weights.iter_mut().zip(grad.iter()) {
-                *w += input * grad * learning_rate;
+                *w -= input * grad * learning_rate;
             }
         }
         // Amount of columns = NUM_IN, size_grad = NUM_OUT
@@ -74,6 +74,7 @@ where
                 sum
             })
             .collect();
+
         out.into_inner()
             .expect("Capacity of ArrayVec should equal NUM_OUT.")
     }
@@ -85,14 +86,18 @@ where
 {
     // Creates a fully connected layer with the given activation and with weights and biases
     // generated using the given generator functions.
-    pub fn new(
+    pub fn new<T, F, G>(
         // The activation function for this layer.
         activation: A,
-        // Function for generating the weights of the layer.
-        weight_gen: impl Fn(usize, usize) -> Scalar,
-        // Function for generating the biases of the layer.
-        bias_gen: impl Fn(usize) -> Scalar,
-    ) -> Self {
+        // Tuple of functions to generate the (weights, biases) for the layer.
+        gen: T,
+    ) -> Self
+    where
+        T: Into<(F, G)>,
+        F: Fn(usize, usize) -> Scalar,
+        G: Fn(usize) -> Scalar,
+    {
+        let (weight_gen, bias_gen) = gen.into();
         let weights = SMatrix::from_fn(weight_gen);
         let biases: ArrayVec<_, NUM_OUT> = (0..NUM_OUT).into_iter().map(bias_gen).collect();
         Self {

@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use rann_traits::{Intermediate, Network, Scalar};
+use rann_traits::{Network, Scalar};
 
 pub struct SquareError<const N: usize> {
     pub expected: [Scalar; N],
@@ -8,16 +8,16 @@ pub struct SquareError<const N: usize> {
 impl<const N: usize> Network for SquareError<N> {
     type In = [Scalar; N];
 
-    type Out = Scalar;
+    type Out = [Scalar; 1];
 
-    type Inter = f32;
+    type Inter = [f32; 1];
 
     fn intermediate(&self, inputs: &Self::In) -> Self::Inter {
-        inputs
+        [inputs
             .iter()
             .zip(self.expected)
             .map(|(i, e)| (i - e) * (i - e))
-            .sum()
+            .sum()]
     }
 
     fn train_deriv(
@@ -25,17 +25,17 @@ impl<const N: usize> Network for SquareError<N> {
         // The previous inputs to the network.
         inputs: &Self::In,
         // The intermediate results of the calculation associated to the inputs.
-        intermediate: &Self::Inter,
+        _intermediate: &Self::Inter,
         // The gradients of the output relative to the error.
-        gradients: &Self::Out,
+        _gradients: &Self::Out,
         // The learning rate.
-        learning_rate: Scalar,
+        _learning_rate: Scalar,
     ) -> Self::In {
         inputs
             .iter()
             .zip(self.expected)
             .map(|(i, e)| 2.0 * (i - e))
-            .collect::<ArrayVec<Scalar>>()
+            .collect::<ArrayVec<Scalar, N>>()
             .into_inner()
             .expect("Capacity of ArrayVec should equal N.")
     }

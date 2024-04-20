@@ -1,6 +1,38 @@
 use crate::{Intermediate, Network, Scalar};
 
-/// Chains two networks together, after eachother.
+/**
+Chains two networks together, after eachother.
+
+# Examples
+```rust
+use rann_traits::Network;
+use rann_base::{Full, common::Logistic};
+
+// Create generators for the weights and biases.
+let all_zero_weights = |_, _| 0.0;
+let all_zero_biases = |_| 0.0;
+
+// Initialize different layers of the network.
+let a = Full::<5, 5, _>::new(Logistic, all_zero_weights, all_zero_biases);
+let b = Full::<5, 5, _>::new(Logistic, all_zero_weights, all_zero_biases);
+
+// And chain those layers together.
+let mut net = a.chain(b);
+
+// Now you can evaluate and train these in one go.
+// First specify the inputs and the learning rate.
+let inputs = [0.0; 5];
+let rate = 0.1;
+
+// Now evaluate the network.
+let inter = net.intermediate(&inputs);
+// And train the network.
+net.train(&inputs, &inter, rate);
+
+
+```
+*/
+
 pub struct Chain<T, U> {
     /// The first part of the chain.
     pub first: T,
